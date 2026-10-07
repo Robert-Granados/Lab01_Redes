@@ -1,0 +1,13 @@
+# Entornos virtuales
+venv/
+env/
+
+# Python
+__pycache__/
+*.pyc
+
+# Secretos
+.env
+*.key
+*.pem
+*pdf

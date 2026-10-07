@@ -1,0 +1,12 @@
+equipos:
+  - nombre: mikrotik-lab
+    host: 192.168.122.26
+    device_type: mikrotik_routeros
+    usuario: lab-ssh
+    rol: escritura
+
+  - nombre: cisco-lab
+    host: 192.168.122.37
+    device_type: cisco_ios
+    usuario: lab-ssh
+    rol: lectura
