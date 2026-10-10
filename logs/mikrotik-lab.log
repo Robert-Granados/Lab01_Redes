@@ -44,4 +44,142 @@ Press F1 for help
 
 
 
+[lab-ssh@MikroTik] > :put [:len [/interface bridge find where name="lo-ssh-1"]]
+
+1
+
+
+
+[lab-ssh@MikroTik] > 
+
+
+
+
+[lab-ssh@MikroTik] > :put [:len [/ip address find where address="10.253.0.1/32"]]
+
+1
+
+
+
+[lab-ssh@MikroTik] > 
+
+
+
+
+[lab-ssh@MikroTik] > :put [:len [/ip address find where address="10.60.30.202/24"]]
+
+1
+
+
+
+[lab-ssh@MikroTik] > 
+
+
+
+
+[lab-ssh@MikroTik] > :put [:len [/ip pool find where name="pool-lab1"]]
+
+1
+
+
+
+[lab-ssh@MikroTik] > 
+
+
+
+
+[lab-ssh@MikroTik] > :put [:len [/ip dhcp-server network find where address="10.60.30.0/24"]]
+
+1
+
+
+
+[lab-ssh@MikroTik] > 
+
+
+
+
+[lab-ssh@MikroTik] > :put [:len [/ip dhcp-server find where name="dhcp-lab1"]]
+
+1
+
+
+
+[lab-ssh@MikroTik] > 
+
+
+
+
+[lab-ssh@MikroTik] > :put [:len [/ip firewall nat find where chain=srcnat action=masquerade out-interface="ether2"]]
+
+1
+
+
+
+[lab-ssh@MikroTik] > 
+
+
+
+
+[lab-ssh@MikroTik] > :put [:len [/ip firewall nat find where chain=srcnat action=accept dst-address="10.60.31.0/24"]]
+
+1
+
+
+
+[lab-ssh@MikroTik] > 
+
+
+
+
+[lab-ssh@MikroTik] > :put [:len [/ip route find where dst-address="10.60.31.0/24"]]
+
+1
+
+
+
+[lab-ssh@MikroTik] > 
+
+
+
+
+[lab-ssh@MikroTik] > /ip dns set allow-remote-requests=yes
+
+
+
+
+[lab-ssh@MikroTik] > 
+
+
+
+
+[lab-ssh@MikroTik] > /ip settings set send-redirects=no
+
+
+
+
+[lab-ssh@MikroTik] > 
+
+
+
+
+[lab-ssh@MikroTik] > /ip address print terse where address="10.253.0.1/32"
+
+0 comment=lo-ssh-1 address=10.253.0.1/32 network=10.253.0.1 interface=lo-ssh-1 actual-interface=lo-ssh-1
+
+
+
+
+[lab-ssh@MikroTik] > 
+
+
+
+
+[lab-ssh@MikroTik] > /ip dhcp-server print terse where name="dhcp-lab1"
+
+0 comment=lab1-rg name=dhcp-lab1 interface=ether1 lease-time=10m address-pool=pool-lab1 authoritative=yes use-radius=no lease-script=
+
+
+
+
 [lab-ssh@MikroTik] > quit

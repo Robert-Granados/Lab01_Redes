@@ -4,5 +4,50 @@ R1-Lab#terminal width 511
 R1-Lab#terminal length 0
 R1-Lab#
 R1-Lab#
+R1-Lab#configure terminal
+Enter configuration commands, one per line.  End with CNTL/Z.
+R1-Lab(config)#
+R1-Lab(config)#interface FastEthernet0/0
+R1-Lab(config-if)#ip address 10.60.31.1 255.255.255.0
+R1-Lab(config-if)#no shutdown
+R1-Lab(config-if)#no ip nat inside
+R1-Lab(config-if)#exit
+R1-Lab(config)#interface FastEthernet0/1
+R1-Lab(config-if)#no ip nat outside
+R1-Lab(config-if)#exit
+R1-Lab(config)#no ip nat inside source list NAT-LAB1 interface FastEthernet0/1 overload
+%Dynamic mapping not found
+R1-Lab(config)#no ip nat inside source list 10 interface FastEthernet0/1 overload
+%Dynamic mapping not found
+R1-Lab(config)#no ip access-list extended NAT-LAB1
+R1-Lab(config)#no access-list 10
+R1-Lab(config)#ip dhcp pool POOL-LAB1
+R1-Lab(dhcp-config)#network 10.60.31.0 255.255.255.0
+R1-Lab(dhcp-config)#default-router 10.60.31.1
+R1-Lab(dhcp-config)#dns-server 192.168.122.1
+R1-Lab(dhcp-config)#exit
+R1-Lab(config)#ip route 10.60.30.0 255.255.255.0 192.168.122.26
+R1-Lab(config)#ip route 0.0.0.0 0.0.0.0 192.168.122.26
+R1-Lab(config)#
+R1-Lab(config)#end
+R1-Lab#
+R1-Lab#
+R1-Lab#show ip dhcp pool POOL-LAB1
+
+Pool POOL-LAB1 :
+ Utilization mark (high/low)    : 100 / 0
+ Subnet size (first/next)       : 0 / 0 
+ Total addresses                : 254
+ Leased addresses               : 1
+ Pending event                  : none
+ 1 subnet is currently in the pool :
+ Current index        IP address range                    Leased addresses
+ 10.60.31.3           10.60.31.1       - 10.60.31.254      1
+R1-Lab#
+R1-Lab#show ip route | include 0.0.0.0|10.60.30.0
+Gateway of last resort is 192.168.122.26 to network 0.0.0.0
+     10.0.0.0/24 is subnetted, 2 subnets
+S       10.60.30.0 [1/0] via 192.168.122.26
+S*   0.0.0.0/0 [1/0] via 192.168.122.26
 R1-Lab#
 R1-Lab#exit

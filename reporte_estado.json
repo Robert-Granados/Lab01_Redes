@@ -1,0 +1,72 @@
+[
+  {
+    "nombre": "mikrotik-lab",
+    "host": "192.168.122.26",
+    "fecha": "2026-10-10T17:13:06",
+    "estado": "ok",
+    "prompt": "[lab-ssh@MikroTik] >",
+    "datos": {
+      "nombre": "MikroTik",
+      "uptime": "2h41m53s",
+      "interfaces": [
+        {
+          "interfaz": "ether2",
+          "ip": "192.168.122.26/24"
+        },
+        {
+          "interfaz": "lo-ssh-1",
+          "ip": "10.253.0.1/32"
+        },
+        {
+          "interfaz": "ether1",
+          "ip": "10.60.30.202/24"
+        }
+      ],
+      "ruta_defecto": "192.168.122.1"
+    }
+  },
+  {
+    "nombre": "cisco-lab",
+    "host": "192.168.122.37",
+    "fecha": "2026-10-10T17:13:07",
+    "estado": "ok",
+    "prompt": "R1-Lab#",
+    "datos": {
+      "nombre": "R1-Lab",
+      "uptime": "2 hours, 32 minutes",
+      "interfaces": [
+        {
+          "interfaz": "FastEthernet0/0",
+          "ip": "10.60.31.1",
+          "estado": "up",
+          "protocolo": "up"
+        },
+        {
+          "interfaz": "FastEthernet0/1",
+          "ip": "192.168.122.37",
+          "estado": "up",
+          "protocolo": "up"
+        },
+        {
+          "interfaz": "FastEthernet1/0",
+          "ip": "unassigned",
+          "estado": "administratively down",
+          "protocolo": "down"
+        },
+        {
+          "interfaz": "FastEthernet2/0",
+          "ip": "unassigned",
+          "estado": "administratively down",
+          "protocolo": "down"
+        },
+        {
+          "interfaz": "NVI0",
+          "ip": "10.60.31.1",
+          "estado": "up",
+          "protocolo": "up"
+        }
+      ],
+      "ruta_defecto": "192.168.122.26"
+    }
+  }
+]
