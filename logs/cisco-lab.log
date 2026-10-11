@@ -42,12 +42,17 @@ Pool POOL-LAB1 :
  Pending event                  : none
  1 subnet is currently in the pool :
  Current index        IP address range                    Leased addresses
- 10.60.31.3           10.60.31.1       - 10.60.31.254      1
+ 10.60.31.4           10.60.31.1       - 10.60.31.254      1
 R1-Lab#
 R1-Lab#show ip route | include 0.0.0.0|10.60.30.0
 Gateway of last resort is 192.168.122.26 to network 0.0.0.0
      10.0.0.0/24 is subnetted, 2 subnets
 S       10.60.30.0 [1/0] via 192.168.122.26
 S*   0.0.0.0/0 [1/0] via 192.168.122.26
+R1-Lab#
+R1-Lab#
+R1-Lab#write mem
+Building configuration...
+[OK]
 R1-Lab#
 R1-Lab#exit

@@ -73,8 +73,8 @@ Si la variable no existe, el script la pide de forma interactiva con `getpass`
 (no se muestra en pantalla).
 
 ```bash
-export LAB_PASS_MIKROTIK_LAB='tu_contraseña'
-export LAB_PASS_CISCO_LAB='tu_contraseña'
+export LAB_PASS_MIKROTIK_LAB='mi_contraseña'
+export LAB_PASS_CISCO_LAB='mi_contraseña'
 ```
 
 ## Ejecución
@@ -82,9 +82,6 @@ export LAB_PASS_CISCO_LAB='tu_contraseña'
 ```bash
 # Inventario + estado + reporte + R6 (lo-ssh-1)
 python3 lab1_inventario.py
-
-# Elegir otro número de lista N para lo-ssh-<N> / 10.253.0.<N>/32
-python3 lab1_inventario.py --numero 7
 
 # Además: DHCP + NAT + interconexión de red en ambos routers
 python3 lab1_inventario.py --red
@@ -102,6 +99,11 @@ python3 lab1_inventario.py --limpiar
 | `--limpiar`  | Elimina solo los objetos creados por el script.                   |
 
 La ejecución de R6 es **idempotente**: la segunda vez informa `SIN CAMBIOS`.
+
+Con `--red`, la configuración del **MikroTik** se guarda sola (RouterOS la
+persiste al instante) y la del **Cisco** se guarda en `startup-config` (NVRAM),
+por lo que **sobrevive a reinicios** del equipo. Las direcciones de las PC se
+asignan por DHCP desde cada router.
 
 ---
 
@@ -128,8 +130,21 @@ La ejecución de R6 es **idempotente**: la segunda vez informa `SIN CAMBIOS`.
 
 ## Notas de uso de IA
 
-Parte de este código y de la depuración se apoyaron en un asistente de IA
-(asistencia para redactar/documentar, revisar configuraciones de red e
-interpretar salidas de depuración). Todo el contenido fue revisado, ejecutado y
-validado contra los equipos reales del laboratorio por el/la estudiante, quien
-asume la responsabilidad del resultado final.
+**Herramienta usada:** Opencode y Claude.
+
+**Para qué se usó:**
+- Diseñar la estructura general del script y su separación por requisitos
+  (R1–R6).
+- Redactar y ajustar los parsers de las salidas de RouterOS e IOS (expresiones
+  regulares) y los comandos agrupados por `device_type`.
+- Depurar la interconexión de red: doble NAT Cisco↔nube de GNS3, rutas estáticas
+  y el orden de las reglas NAT del MikroTik.
+- Redactar y revisar este README.
+
+**Qué NO se delegó (hecho por mi Robert Granados):**
+- Decisiones de topología y direccionamiento del laboratorio.
+- Ejecución y validación en los equipos reales: conexión SSH, pruebas de
+  idempotencia (2.ª ejecución "SIN CAMBIOS"), `--limpiar` y pruebas de ping.
+
+Todo el contenido fue revisado, ejecutado y validado contra los requisitos de este laboratorio por mi persona Robert Granados, quien asume la responsabilidad del
+resultado final.

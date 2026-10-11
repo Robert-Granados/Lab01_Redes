@@ -2,12 +2,12 @@
   {
     "nombre": "mikrotik-lab",
     "host": "192.168.122.26",
-    "fecha": "2026-10-10T17:13:06",
+    "fecha": "2026-10-11T14:34:33",
     "estado": "ok",
     "prompt": "[lab-ssh@MikroTik] >",
     "datos": {
       "nombre": "MikroTik",
-      "uptime": "2h41m53s",
+      "uptime": "1h5m26s",
       "interfaces": [
         {
           "interfaz": "ether2",
@@ -28,12 +28,12 @@
   {
     "nombre": "cisco-lab",
     "host": "192.168.122.37",
-    "fecha": "2026-10-10T17:13:07",
+    "fecha": "2026-10-11T14:34:34",
     "estado": "ok",
     "prompt": "R1-Lab#",
     "datos": {
       "nombre": "R1-Lab",
-      "uptime": "2 hours, 32 minutes",
+      "uptime": "1 hour, 3 minutes",
       "interfaces": [
         {
           "interfaz": "FastEthernet0/0",

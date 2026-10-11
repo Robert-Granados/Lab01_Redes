@@ -387,12 +387,12 @@ def limpiar_mikrotik(conn, numero):
     acciones = [
         ("IP lo-ssh", f'/ip address remove [find where address="{ip_lo}"]'),
         ("bridge lo-ssh", f'/interface bridge remove [find where name="{nombre_lo}"]'),
-        ("servidores DHCP", f'/ip dhcp-server remove [find where comment="{MARCA}"]'),
-        ("redes DHCP", f'/ip dhcp-server network remove [find where comment="{MARCA}"]'),
-        ("pools DHCP", f'/ip pool remove [find where comment="{MARCA}"]'),
-        ("NAT", f'/ip firewall nat remove [find where comment="{MARCA}"]'),
-        ("rutas", f'/ip route remove [find where comment="{MARCA}"]'),
-        ("direcciones IP", f'/ip address remove [find where comment="{MARCA}"]'),
+        ("servidores DHCP", f'/ip dhcp-server remove [find where comment~"{MARCA}"]'),
+        ("redes DHCP", f'/ip dhcp-server network remove [find where comment~"{MARCA}"]'),
+        ("pools DHCP", f'/ip pool remove [find where comment~"{MARCA}"]'),
+        ("NAT", f'/ip firewall nat remove [find where comment~"{MARCA}"]'),
+        ("rutas", f'/ip route remove [find where comment~"{MARCA}"]'),
+        ("direcciones IP", f'/ip address remove [find where comment~"{MARCA}"]'),
     ]
     for descripcion, cmd in acciones:
         conn.send_command(cmd)
@@ -438,6 +438,10 @@ def configurar_cisco(conn, peer):
     print("    " + (lineas[0] if lineas else "(sin salida)"))
     print("    " + conn.send_command(
         "show ip route | include 0.0.0.0|10.60.30.0").splitlines()[0])
+    # Persistir en NVRAM para sobrevivir reinicios del equipo (el MikroTik
+    # guarda su configuración automáticamente; IOS necesita guardarla).
+    conn.save_config()
+    print("  [+] configuración guardada en startup-config (NVRAM)")
 
 
 def limpiar_cisco(conn, peer):
@@ -462,7 +466,8 @@ def limpiar_cisco(conn, peer):
         "shutdown",
     ]
     conn.send_config_set(comandos)
-    print("  [-] configuración de red revertida")
+    conn.save_config()
+    print("  [-] configuración de red revertida (y guardada en NVRAM)")
 
 
 def aplicar_configuracion(equipo, numero, limpiar, con_red):
