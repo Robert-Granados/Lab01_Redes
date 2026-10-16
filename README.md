@@ -14,6 +14,10 @@ El script `lab1_inventario.py`:
 6. Aplica un cambio **idempotente** en el equipo de escritura: una interfaz
    `lo-ssh-<N>` con IP `10.253.0.<N>/32` y comentario (R6).
 
+Incluye además los **extras opcionales**: soporte **multivendor** (Cisco IOS en
+el inventario) y consulta del **estado del MikroTik por su API REST** con
+comparación SSH vs REST en el reporte (ver *Extra opcional*).
+
 Adicionalmente, con `--red` configura DHCP, NAT e interconexión entre las dos
 redes LAN del laboratorio.
 
@@ -121,10 +125,63 @@ asignan por DHCP desde cada router.
 
 - `COMANDOS_POR_TIPO` / `PARSERS_POR_TIPO`: comandos y parseo por `device_type`
   (agregar un fabricante = agregar una entrada, sin tocar la lógica).
+- `REST_POR_TIPO`: fabricantes con API REST y la ruta base de su API (extra).
 - `RED_MIKROTIK` / `RED_CISCO`: parámetros de DHCP/NAT/rutas.
 - `MARCA = "lab1-rg"`: prefijo para identificar y poder limpiar solo los objetos
   creados por este script.
 - `NUMERO_DEF = 1`: valor por defecto de `--numero`.
+
+---
+
+## Extra opcional: multivendor + REST
+
+### Multivendor (Cisco IOS)
+
+El inventario ya incluye un equipo **Cisco IOS** (`cisco-lab`, `device_type:
+cisco_ios`) junto al MikroTik. Como los comandos y el parseo están agrupados por
+`device_type` (`COMANDOS_POR_TIPO` / `PARSERS_POR_TIPO`), el mismo flujo obtiene
+los 4 datos de ambos fabricantes sin cambiar la lógica.
+
+### API REST del MikroTik (comparación SSH vs REST)
+
+Además de SSH, el script consulta el **MikroTik** por su **API REST** (librería
+`requests`) y compara ambos resultados en el reporte, tal como muestra la columna
+`REST` de la tabla (`= SSH`, `!= <campo>` o `-`).
+
+| Dato             | SSH                        | REST                                       |
+|------------------|----------------------------|--------------------------------------------|
+| Nombre           | `/system identity print`   | `GET /rest/system/identity`                |
+| Uptime           | `/system resource print`   | `GET /rest/system/resource`                |
+| Interfaces / IP  | `/ip address print terse`  | `GET /rest/ip/address`                     |
+| Ruta por defecto | `/ip route print terse`    | `GET /rest/ip/route?dst-address=0.0.0.0/0` |
+
+En `reporte_estado.json`, cada equipo con REST agrega:
+
+```json
+"rest":        { "nombre": "...", "uptime": "...", "interfaces": [], "ruta_defecto": "..." },
+"comparacion": { "coincide": true, "diferencias": [] }
+```
+
+El campo `uptime` se muestra en ambos pero **no** se compara, porque cambia entre
+una lectura y la otra. Si el REST no está disponible, el reporte guarda el error
+en `rest`/`comparacion` y el resto del laboratorio sigue funcionando (el extra no
+rompe R1–R6).
+
+**Requisito en el router** (una sola vez): el servicio **`www-ssl` (HTTPS)**
+habilitado con un certificado y un usuario con la política `rest-api`. En
+RouterOS 7.8 el REST se sirve **solo** por HTTPS (por HTTP devuelve 404):
+
+```
+/certificate add name=lab-ca common-name=lab-ca key-usage=key-cert-sign
+/certificate sign lab-ca
+/certificate add name=lab-web common-name=lab key-usage=tls-server
+/certificate sign lab-web ca=lab-ca
+/ip service set www-ssl certificate=lab-web disabled=no
+```
+
+El script usa el `host` del inventario y `verify=False` (el certificado del
+laboratorio es autofirmado). `requests` y `urllib3` ya vienen en
+`requirements.txt`.
 
 ---
 
@@ -139,12 +196,15 @@ asignan por DHCP desde cada router.
   regulares) y los comandos agrupados por `device_type`.
 - Depurar la interconexión de red: doble NAT Cisco↔nube de GNS3, rutas estáticas
   y el orden de las reglas NAT del MikroTik.
+- Implementar los extras: la consulta por **API REST** del MikroTik
+  (`requests`), la comparación SSH vs REST y el soporte multivendor.
 - Redactar y revisar este README.
 
 **Qué NO se delegó (hecho por mi Robert Granados):**
 - Decisiones de topología y direccionamiento del laboratorio.
 - Ejecución y validación en los equipos reales: conexión SSH, pruebas de
-  idempotencia (2.ª ejecución "SIN CAMBIOS"), `--limpiar` y pruebas de ping.
+  idempotencia (2.ª ejecución "SIN CAMBIOS"), `--limpiar`, pruebas de ping y
+  verificación de que el resultado por REST coincide con el de SSH.
 
 Todo el contenido fue revisado, ejecutado y validado contra los requisitos de este laboratorio por mi persona Robert Granados, quien asume la responsabilidad del
 resultado final.

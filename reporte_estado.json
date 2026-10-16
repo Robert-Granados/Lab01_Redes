@@ -2,17 +2,13 @@
   {
     "nombre": "mikrotik-lab",
     "host": "192.168.122.26",
-    "fecha": "2026-10-11T14:34:33",
+    "fecha": "2026-10-13T12:10:17",
     "estado": "ok",
     "prompt": "[lab-ssh@MikroTik] >",
     "datos": {
       "nombre": "MikroTik",
-      "uptime": "1h5m26s",
+      "uptime": "1m11s",
       "interfaces": [
-        {
-          "interfaz": "ether2",
-          "ip": "192.168.122.26/24"
-        },
         {
           "interfaz": "lo-ssh-1",
           "ip": "10.253.0.1/32"
@@ -20,20 +16,47 @@
         {
           "interfaz": "ether1",
           "ip": "10.60.30.202/24"
+        },
+        {
+          "interfaz": "ether2",
+          "ip": "192.168.122.26/24"
         }
       ],
       "ruta_defecto": "192.168.122.1"
+    },
+    "rest": {
+      "nombre": "MikroTik",
+      "uptime": "1m11s",
+      "interfaces": [
+        {
+          "interfaz": "lo-ssh-1",
+          "ip": "10.253.0.1/32"
+        },
+        {
+          "interfaz": "ether1",
+          "ip": "10.60.30.202/24"
+        },
+        {
+          "interfaz": "ether2",
+          "ip": "192.168.122.26/24"
+        }
+      ],
+      "ruta_defecto": "192.168.122.1"
+    },
+    "comparacion": {
+      "coincide": true,
+      "diferencias": []
     }
   },
   {
     "nombre": "cisco-lab",
     "host": "192.168.122.37",
-    "fecha": "2026-10-11T14:34:34",
+    "fecha": "2026-10-13T12:10:20",
     "estado": "ok",
     "prompt": "R1-Lab#",
     "datos": {
       "nombre": "R1-Lab",
-      "uptime": "1 hour, 3 minutes",
+      "uptime": "0 minutes",
       "interfaces": [
         {
           "interfaz": "FastEthernet0/0",
@@ -58,12 +81,6 @@
           "ip": "unassigned",
           "estado": "administratively down",
           "protocolo": "down"
-        },
-        {
-          "interfaz": "NVI0",
-          "ip": "10.60.31.1",
-          "estado": "up",
-          "protocolo": "up"
         }
       ],
       "ruta_defecto": "192.168.122.26"

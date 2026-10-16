@@ -3,6 +3,7 @@
 import os
 import re
 import json
+import time
 import getpass
 import argparse
 from datetime import datetime
@@ -14,6 +15,17 @@ from netmiko.exceptions import (
     NetmikoTimeoutException,
     NetmikoAuthenticationException,
 )
+
+# Extra opcional: API REST del MikroTik. Es opcional, así que si falta la
+# librería el resto del laboratorio (R1-R6) sigue funcionando.
+try:
+    import requests
+    import urllib3
+
+    # El equipo del laboratorio usa un certificado autofirmado en www-ssl.
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+except ImportError:  # pragma: no cover
+    requests = None
 
 # El Cisco IOS 3725 solo ofrece diffie-hellman-group1-sha1. Se agrega al final
 # de la lista de preferencia: solo se usa si el equipo no acepta nada mejor.
@@ -129,6 +141,106 @@ PARSERS_POR_TIPO = {
     "cisco_ios": parsear_cisco,
 }
 
+# --- Extra opcional: API REST del MikroTik (comparación SSH vs REST) ---
+# Fabricantes con API REST y la ruta base de su API. Agregar otro fabricante
+# es agregar una entrada, igual que COMANDOS_POR_TIPO.
+REST_POR_TIPO = {
+    "mikrotik_routeros": "/rest",
+}
+
+
+def obtener_estado_rest(equipo, timeout=60, intentos=3):
+    """Obtiene los 4 datos (R4) por la API REST del equipo.
+
+    Devuelve (datos, error): 'datos' con el MISMO formato que el parser de SSH
+    (claves nombre, uptime, interfaces, ruta_defecto), o (None, mensaje).
+    Requiere el servicio www-ssl (HTTPS) habilitado en RouterOS.
+
+    RouterOS 7.8 tiene dos comportamientos que obligan a reintentar:
+    * el login REST de un usuario se cachea 10 min; el primero tras expirar
+      puede tardar y devolver una lista vacía;
+    * si el cliente abandona una petición (timeout corto), el equipo la sigue
+      ejecutando hasta 60 s y encola las siguientes. Por eso el timeout es
+      amplio: se prefiere esperar a abandonar y arrastrar el problema.
+    """
+    if requests is None:
+        return None, "librería 'requests' no instalada"
+    base = "https://" + equipo["host"] + REST_POR_TIPO[equipo["device_type"]]
+    ultimo_error = "sin respuesta del REST"
+    for _ in range(intentos):
+        try:
+            sesion = requests.Session()
+            sesion.auth = (equipo["usuario"], obtener_password(equipo["nombre"]))
+            sesion.verify = False  # certificado autofirmado del laboratorio
+
+            ident = sesion.get(f"{base}/system/identity", timeout=timeout)
+            ident.raise_for_status()
+            datos_ident = ident.json()
+            if not isinstance(datos_ident, dict) or not datos_ident.get("name"):
+                # Respuesta vacía: el login aún no está disponible. Reintentar.
+                ultimo_error = "respuesta vacía del REST (login en curso)"
+                time.sleep(1)
+                continue
+
+            recurso = sesion.get(f"{base}/system/resource", timeout=timeout)
+            recurso.raise_for_status()
+            direcciones = sesion.get(f"{base}/ip/address", timeout=timeout,
+                                     params={".proplist": "address,interface"})
+            direcciones.raise_for_status()
+            rutas = sesion.get(f"{base}/ip/route", timeout=timeout,
+                               params={"dst-address": "0.0.0.0/0",
+                                       ".proplist": "gateway"})
+            rutas.raise_for_status()
+
+            lista_rutas = rutas.json()
+            return {
+                "nombre": datos_ident.get("name"),
+                "uptime": recurso.json().get("uptime"),
+                "interfaces": [{"interfaz": d.get("interface"), "ip": d.get("address")}
+                               for d in direcciones.json()],
+                "ruta_defecto": lista_rutas[0].get("gateway") if lista_rutas else None,
+            }, None
+        except Exception as e:
+            ultimo_error = f"{type(e).__name__}: {e}"
+            time.sleep(1)
+    return None, ultimo_error
+
+
+def comparar_ssh_rest(datos_ssh, datos_rest):
+    """Diferencias entre SSH y REST (lista vacía = coinciden).
+
+    No compara 'uptime' porque cambia entre una lectura y la otra.
+    """
+    if not datos_ssh or not datos_rest:
+        return ["faltan datos"]
+    diferencias = []
+    for campo in ("nombre", "ruta_defecto"):
+        if datos_ssh.get(campo) != datos_rest.get(campo):
+            diferencias.append(campo)
+    normalizar = lambda lista: sorted(
+        (i.get("interfaz"), i.get("ip")) for i in (lista or []))
+    if normalizar(datos_ssh.get("interfaces")) != normalizar(
+            datos_rest.get("interfaces")):
+        diferencias.append("interfaces")
+    return diferencias
+
+
+def agregar_comparacion_rest(equipo, resultado):
+    """Agrega al resultado los datos vía REST y la comparación SSH vs REST."""
+    if equipo["device_type"] not in REST_POR_TIPO:
+        return
+    datos_rest, error = obtener_estado_rest(equipo)
+    if error:
+        resultado["rest"] = {"error": error}
+        resultado["comparacion"] = {"coincide": None, "diferencias": [error]}
+        return
+    resultado["rest"] = datos_rest
+    diferencias = comparar_ssh_rest(resultado.get("datos"), datos_rest)
+    resultado["comparacion"] = {
+        "coincide": not diferencias,
+        "diferencias": diferencias,
+    }
+
 # Etiqueta (comment) de TODO lo que crea este script, para poder hacer --limpiar
 # sin tocar objetos de otros estudiantes.
 MARCA = "lab1-rg"
@@ -239,10 +351,23 @@ def _resumen_equipo(resultado):
     return cantidad, gateway
 
 
+def _resumen_rest(resultado):
+    """Estado de la comparación SSH vs REST para la tabla (extra opcional)."""
+    comparacion = resultado.get("comparacion")
+    if comparacion is None:
+        return "-"
+    if comparacion.get("coincide") is True:
+        return "= SSH"
+    if comparacion.get("coincide") is False:
+        return "!= " + ",".join(comparacion.get("diferencias", []))
+    return "sin REST"
+
+
 def imprimir_tabla(resultados):
-    """R5: resumen en consola (equipo, IP, estado, #interfaces, gateway)."""
+    """R5: resumen en consola (equipo, IP, estado, #interfaces, gateway, REST)."""
     encabezado = (
-        f"{'EQUIPO':<14} {'IP':<16} {'ESTADO':<30} {'IFACES':>6}  {'GATEWAY':<16}"
+        f"{'EQUIPO':<14} {'IP':<16} {'ESTADO':<30} {'IFACES':>6}  "
+        f"{'GATEWAY':<16} {'REST':<12}"
     )
     print(encabezado)
     print("-" * len(encabezado))
@@ -253,7 +378,7 @@ def imprimir_tabla(resultados):
             estado = estado[:27] + "..."
         print(
             f"{r['nombre']:<14} {r['host']:<16} {estado:<30} "
-            f"{str(cantidad):>6}  {gateway:<16}"
+            f"{str(cantidad):>6}  {gateway:<16} {_resumen_rest(r):<12}"
         )
 
 
@@ -520,7 +645,12 @@ def main():
 
     os.makedirs(CARPETA_LOGS, exist_ok=True)
     equipos = _agregar_peer(cargar_inventario())
-    resultados = [conectar_y_probar(equipo) for equipo in equipos]
+    resultados = []
+    for equipo in equipos:
+        resultado = conectar_y_probar(equipo)
+        # Extra opcional: mismos datos por REST y comparación SSH vs REST.
+        agregar_comparacion_rest(equipo, resultado)
+        resultados.append(resultado)
     guardar_reporte(resultados)
     imprimir_tabla(resultados)
     print(f"\nReporte guardado en {RUTA_REPORTE}")

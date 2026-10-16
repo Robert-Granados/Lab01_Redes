@@ -38,11 +38,11 @@ Pool POOL-LAB1 :
  Utilization mark (high/low)    : 100 / 0
  Subnet size (first/next)       : 0 / 0 
  Total addresses                : 254
- Leased addresses               : 1
+ Leased addresses               : 0
  Pending event                  : none
  1 subnet is currently in the pool :
  Current index        IP address range                    Leased addresses
- 10.60.31.4           10.60.31.1       - 10.60.31.254      1
+ 10.60.31.1           10.60.31.1       - 10.60.31.254      0
 R1-Lab#
 R1-Lab#show ip route | include 0.0.0.0|10.60.30.0
 Gateway of last resort is 192.168.122.26 to network 0.0.0.0
